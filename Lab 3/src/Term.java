@@ -6,7 +6,6 @@ public class Term {
 	 *  name
 	 *  number of documents it is in
 	 *  number of know relevent documents term is in
-	 *  
 	 */
 	
 	private String name;
@@ -29,7 +28,22 @@ public class Term {
 		return this.name.equals(name);
 	}
 	
-	public void setWeight(int S){
-		
+	public void addFreq(){
+		termFreq++;
+	}
+	
+	public void setWeight(int releventDocs){
+		weight = Math.log10(((termFreq + 5.0) * ( N - termDocCount - releventDocs + termFreq +0.5))/((termDocCount - termFreq + 0.5) * (releventDocs - termFreq + 0.5)));
+	}
+	
+	public double getWeight(){
+		return weight;
+	}
+	
+	public double getRank(){
+		return termFreq * weight;
+	}
+	public String getName(){
+		return name;
 	}
 }
