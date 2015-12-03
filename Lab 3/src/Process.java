@@ -1,7 +1,10 @@
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -12,15 +15,77 @@ public class Process {
 	
 	public static void main(String [] args){
 				
-		getResultPage("cosmic%20event","10");//405
-		System.out.println();
-		getResultPage("Parkinson's%20disease","10");//406
-		System.out.println();
-		getResultPage("tropical%20storms","10");//408
+		String [] topTerms = getResultPage("cosmic%20event","10");//405
+		
+		genFile("cosmic%20event",topTerms,"405","BM25.1.20.0.75","10");
+		
+		//System.out.println();
+		//getResultPage("Parkinson's%20disease","10");//406
+		//System.out.println();
+		//getResultPage("tropical%20storms","10");//408
 		
 	}
 	
-	static void getResultPage(String query, String numberOfDocs){
+	static void genFile(String base, String[] extendTerms,String termID,String something,String numberOfDocs){
+		
+		String fileName = base+".res";
+		
+		String query = base;
+		String line = "http://136.206.115.117:8080/IRModelGenerator/SearchServlet?query="+query+"&simf=BM25&k=1.2&b=0.75&numwanted="+numberOfDocs+"";
+		try{
+			String files = getTopFiles(line);
+			//System.out.println(files);
+			String [] topFiles = files.split(" ");
+			formatFile(fileName, topFiles, termID, something, ""+topFiles.length );
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		
+		//target="_blank">FR941206-0-00005</a>
+	}
+	
+	static void formatFile(String FileToCreate,String [] fileNames,String termID,String something,String numberOfDocs) throws FileNotFoundException, UnsupportedEncodingException{
+		
+		PrintWriter writer = new PrintWriter(FileToCreate, "UTF-8");
+		
+		writer.close();
+		
+		for(int i=0; i<fileNames.length;i++){
+			String line = termID + " Q0 " + fileNames[i] + " " + (fileNames.length - i)  + " " + something;
+			//System.out.println(line);
+			writer.println(line);
+		}
+		
+		writer.close();
+	}
+	
+	static String getTopFiles(String urlAddress) throws IOException{
+		
+		URL url = new URL(urlAddress);
+		
+		URLConnection connection = url.openConnection();
+       	BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+       	StringBuilder contentBuilder = new StringBuilder();
+		String str;
+		
+		while ((str = in.readLine()) != null) {
+			str = str.replace("\n", "").replace("\r", ""); //remove new lines
+    	
+	    	if(str.contains("target=\"_blank\">")){
+	    		str = str.substring(str.indexOf("target=\"_blank\">"), str.indexOf("</a>"));
+	    		str = str.replace("\n", "").replace("\r", "");
+	    		str = str.replace("  ", ",");
+	    		str+=" ";
+	    		System.out.println(str);
+	    		contentBuilder.append(str);
+	    	}
+		}
+	    in.close();
+	    return contentBuilder.toString().trim();
+	}
+	
+	
+	static String[] getResultPage(String query, String numberOfDocs){
         
 		try{
 		    
@@ -51,6 +116,7 @@ public class Process {
 		    		str = str.replace("  ", ",");
 		    		str+=" ";
 		    		contentBuilder.append(str);
+		    		
 		    	}
 			}
 		    in.close();
@@ -131,10 +197,13 @@ public class Process {
 			}
 		
 			for(int i=0; i<values.length;i++){
-				System.out.println(topTerms[i] + ": " + values[i] );
+				//System.out.println(topTerms[i] + ": " + values[i] );
 			}
+			
+			return topTerms;
 	    }catch(Exception e){
 	    	e.printStackTrace();
 	    }
+		return null;
 	}
 }
