@@ -1,4 +1,5 @@
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -32,11 +33,12 @@ public class Process {
 		
 		String query = base;
 		String line = "http://136.206.115.117:8080/IRModelGenerator/SearchServlet?query="+query+"&simf=BM25&k=1.2&b=0.75&numwanted="+numberOfDocs+"";
+		System.out.println(line);
 		try{
 			String files = getTopFiles(line);
 			//System.out.println(files);
 			String [] topFiles = files.split(" ");
-			formatFile(fileName, topFiles, termID, something, ""+topFiles.length );
+			formatFile(fileName, topFiles, termID, something, topFiles.length );
 		}catch(Exception e){
 			e.printStackTrace();
 		}
@@ -44,7 +46,7 @@ public class Process {
 		//target="_blank">FR941206-0-00005</a>
 	}
 	
-	static void formatFile(String FileToCreate,String [] fileNames,String termID,String something,String numberOfDocs) throws FileNotFoundException, UnsupportedEncodingException{
+	static void formatFile(String FileToCreate,String [] fileNames,String termID,String something,int numberOfDocs) throws FileNotFoundException, UnsupportedEncodingException{
 		
 		PrintWriter writer = new PrintWriter(FileToCreate, "UTF-8");
 		
@@ -72,12 +74,17 @@ public class Process {
 			str = str.replace("\n", "").replace("\r", ""); //remove new lines
     	
 	    	if(str.contains("target=\"_blank\">")){
-	    		str = str.substring(str.indexOf("target=\"_blank\">"), str.indexOf("</a>"));
+	    		System.out.println(str);
+	    		String temp = "target=\"_blank\">";
+	    		//System.out.println(temp);
+	    		str = str.substring(str.indexOf("target=\"_blank\">")+temp.length(),str.indexOf("</a>"));
+	    		System.out.println(str);
 	    		str = str.replace("\n", "").replace("\r", "");
 	    		str = str.replace("  ", ",");
 	    		str+=" ";
 	    		System.out.println(str);
 	    		contentBuilder.append(str);
+	    		
 	    	}
 		}
 	    in.close();
